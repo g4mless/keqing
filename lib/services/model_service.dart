@@ -6,8 +6,6 @@ class ModelService {
   static const Map<String, String> models = {
     'deepseek-chat': 'DeepSeek V3',
     'gemini-2.0-flash-lite': 'Gemini 2.0 Flash Lite',
-    'llama3.3': 'Llama 3.3',
-    'qwen2.5': 'Qwen 2.5',
   };
 
   Future<String> getSelectedModel() async {

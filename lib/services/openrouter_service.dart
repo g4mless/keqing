@@ -25,12 +25,6 @@ class OpenRouterService {
       case 'gemini-2.0-flash-lite':
         modelId = 'google/gemini-2.0-flash-lite-preview-02-05:free';
         break;
-      case 'llama3.3':
-        modelId = 'meta-llama/llama-3.3-70b-instruct:free';
-        break;
-      case 'qwen2.5':
-        modelId = 'qwen/qwen-2.5-72b-instruct:free';
-        break;
       default:
         modelId = 'deepseek/deepseek-chat:free';
     }
