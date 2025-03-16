@@ -227,17 +227,22 @@ class _ChatScreenState extends State<ChatScreen> {
       drawer: Drawer(
         child: Column(
           children: [
-            DrawerHeader(
+            Container(
+              height: kToolbarHeight, // Standard AppBar height
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top,
+                left: 16,
+                right: 16,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
               ),
-              child: const Center(
-                child: Text(
-                  'Conversations',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Conversations',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
                 ),
               ),
             ),
@@ -313,7 +318,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: const Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Row(
