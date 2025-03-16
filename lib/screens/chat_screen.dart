@@ -44,6 +44,14 @@ class _ChatScreenState extends State<ChatScreen> {
     final isUser = message['role'] == 'user';
     final text = message['content']!;
     
+    // Format roleplay text with italics for assistant messages
+    final formattedText = !isUser && text.contains('"')
+        ? text.replaceAllMapped(
+            RegExp(r'^([^"]+)|("\n\n[^"]+)'),
+            (match) => '_${match.group(0)}_'
+          )
+        : text;
+    
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -57,13 +65,19 @@ class _ChatScreenState extends State<ChatScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: MarkdownBody(
-          data: text,
+          data: formattedText,
           styleSheet: MarkdownStyleSheet(
             p: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               height: 1.4,
               letterSpacing: 0.2,
+            ),
+            em: const TextStyle(
+              color: Colors.white70,  // Slightly dimmed italic text
+              fontSize: 16,
+              height: 1.4,
+              fontStyle: FontStyle.italic,
             ),
             code: const TextStyle(
               color: Colors.white,
@@ -82,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             listBullet: const TextStyle(color: Colors.white),
             strong: const TextStyle(color: Colors.white),
-            em: const TextStyle(color: Colors.white),
+            // em style is already defined for descriptive text
           ),
         ),
       ),
