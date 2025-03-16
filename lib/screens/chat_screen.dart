@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../services/openrouter_service.dart';
 
 class ChatScreen extends StatefulWidget{
@@ -55,13 +56,33 @@ class _ChatScreenState extends State<ChatScreen> {
           color: isUser ? const Color(0xFF673AB7) : const Color(0xFF4A148C),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            height: 1.4,
-            letterSpacing: 0.2,
+        child: MarkdownBody(
+          data: text,
+          styleSheet: MarkdownStyleSheet(
+            p: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              height: 1.4,
+              letterSpacing: 0.2,
+            ),
+            code: const TextStyle(
+              color: Colors.white,
+              backgroundColor: Colors.black26,
+              fontSize: 14,
+              fontFamily: 'monospace',
+            ),
+            codeblockDecoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            blockquote: const TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+              height: 1.4,
+            ),
+            listBullet: const TextStyle(color: Colors.white),
+            strong: const TextStyle(color: Colors.white),
+            em: const TextStyle(color: Colors.white),
           ),
         ),
       ),
