@@ -29,23 +29,6 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a")
-            isUniversalApk = false
-        }
-    }
-
-    buildTypes {
-        release {
-            // Enable R8 shrinking and obfuscation
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
 }
 
 flutter {
