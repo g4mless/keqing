@@ -211,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
@@ -239,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             onPressed: _sendMessage,
                             style: IconButton.styleFrom(
                               backgroundColor: const Color(0xFF673AB7),
-                              foregroundColor: Colors.white70,
+                              foregroundColor: Colors.white,
                             ),
                           ),
                         ),

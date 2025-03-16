@@ -1,5 +1,5 @@
 name: keqing
-description: "Keqing Powered by DeepSeek V3"
+description: "Keqing Powered by DeepSeek V3 & Gemini 2.0 Flash Lite"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -44,6 +44,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -93,3 +94,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Move the flutter_launcher_icons configuration here (outside of the flutter section)
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: false
+  image_path: "assets/icon/icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  adaptive_icon_background: "#FFFFFF" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/icon/icon.png"
