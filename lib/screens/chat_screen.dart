@@ -12,7 +12,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final OpenRouterService _service = OpenRouterService();
   final List<Map<String, String>> _messages = [];
-  bool _isLoading = false;
 
   Future<void> _sendMessage() async {
     if (_controller.text.isEmpty) return;
@@ -20,7 +19,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final userMessage = _controller.text;
     setState(() {
       _messages.add({'role': 'user', 'content': userMessage});
-      _isLoading = true;
     });
     _controller.clear();
 
@@ -38,11 +36,36 @@ class _ChatScreenState extends State<ChatScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
+  }
+
+  Widget _buildMessageBubble(Map<String, String> message) {
+    final isUser = message['role'] == 'user';
+    final text = message['content']!;
+    
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
+        ),
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isUser ? const Color(0xFF673AB7) : const Color(0xFF4A148C),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            height: 1.4,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -57,35 +80,9 @@ class _ChatScreenState extends State<ChatScreen> {
             child: ListView.builder(
               itemCount: _messages.length,
               padding: const EdgeInsets.all(16),
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return Align(
-                  alignment: message['role'] == 'user'
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: message['role'] == 'user'
-                          ? const Color(0xFF673AB7)
-                          : const Color(0xFF4A148C),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      message['content']!,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                );
-              },
+              itemBuilder: (context, index) => _buildMessageBubble(_messages[index]),
             ),
           ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -97,6 +94,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       hintText: 'Type a message...',
                       border: OutlineInputBorder(),
                     ),
+                    maxLines: null,
+                    textInputAction: TextInputAction.newline,
                   ),
                 ),
                 IconButton(
