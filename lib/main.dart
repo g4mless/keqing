@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/home_screen.dart';
+import 'screens/chat_screen.dart';
+import 'models/conversation.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Add this line
+  WidgetsFlutterBinding.ensureInitialized();
   if (const String.fromEnvironment('OPENROUTER_API_KEY').isEmpty) {
     await dotenv.load();
   }
@@ -30,7 +31,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.dark,
-      home: const HomeScreen(), // Change this line
+      home: ChatScreen(
+        conversation: Conversation.create(),
+        onConversationUpdated: () {}, // We'll handle this differently
+      ),
     );
   }
 }

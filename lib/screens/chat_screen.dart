@@ -5,6 +5,7 @@ import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:markdown/markdown.dart' as md;
 import '../services/openrouter_service.dart';
 import '../services/chat_history_service.dart';
+import '../services/model_service.dart';
 import '../models/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -26,12 +27,32 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final OpenRouterService _service = OpenRouterService();
   final ChatHistoryService _historyService = ChatHistoryService();
+  final ModelService _modelService = ModelService();
   final ScrollController _scrollController = ScrollController();
+  
+  String _selectedModel = 'deepseek-chat';
+  List<Conversation> _conversations = [];
 
   @override
   void initState() {
     super.initState();
     _messages = widget.conversation.messages;
+    _loadSelectedModel();
+    _loadConversations();
+  }
+
+  Future<void> _loadSelectedModel() async {
+    final model = await _modelService.getSelectedModel();
+    setState(() {
+      _selectedModel = model;
+    });
+  }
+
+  Future<void> _loadConversations() async {
+    final loaded = await _historyService.loadConversations();
+    setState(() {
+      _conversations = loaded;
+    });
   }
 
   Future<void> _sendMessage() async {
@@ -55,7 +76,6 @@ class _ChatScreenState extends State<ChatScreen> {
         _scrollToBottom();
       }
 
-      // Update conversation title if it's the first message
       if (_messages.length == 2) {
         final title = _messages.first['content']!;
         widget.conversation.title = title.length > 30 
@@ -64,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
 
       await _historyService.saveConversation(widget.conversation);
-      widget.onConversationUpdated();
+      _loadConversations();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -86,7 +106,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final isUser = message['role'] == 'user';
     final text = message['content']!;
     
-    // Process LaTeX and roleplay text
     final processedText = text.replaceAllMapped(
       RegExp(r'\$\$(.*?)\$\$|\$(.*?)\$', dotAll: true),
       (match) {
@@ -168,21 +187,114 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: Text(widget.conversation.title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () async {
-              await _historyService.deleteConversation(widget.conversation.id);
-              widget.onConversationUpdated();
-              Navigator.pop(context);
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'Select Model',
+            initialValue: _selectedModel,
+            onSelected: (String model) async {
+              await _modelService.setSelectedModel(model);
+              setState(() {
+                _selectedModel = model;
+              });
+            },
+            itemBuilder: (BuildContext context) {
+              return ModelService.models.entries.map((entry) {
+                return PopupMenuItem<String>(
+                  value: entry.key,
+                  child: Row(
+                    children: [
+                      Icon(
+                        _selectedModel == entry.key
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        size: 20,
+                        color: _selectedModel == entry.key
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(entry.value),
+                    ],
+                  ),
+                );
+              }).toList();
             },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: const Center(
+                child: Text(
+                  'Conversations',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _conversations.length,
+                itemBuilder: (context, index) {
+                  final conversation = _conversations[index];
+                  return ListTile(
+                    title: Text(conversation.title),
+                    subtitle: Text(
+                      conversation.messages.isNotEmpty
+                          ? conversation.messages.last['content']!
+                          : 'No messages',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    leading: const Icon(Icons.chat_outlined),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () async {
+                        await _historyService.deleteConversation(conversation.id);
+                        _loadConversations();
+                      },
+                    ),
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            conversation: conversation,
+                            onConversationUpdated: widget.onConversationUpdated,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('New Chat'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen(
+                      conversation: Conversation.create(),
+                      onConversationUpdated: widget.onConversationUpdated,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -199,19 +311,42 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    maxLines: null,
-                    textInputAction: TextInputAction.newline,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            decoration: InputDecoration(
+                              hintText: 'Type a message...',
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            maxLines: null,
+                            textInputAction: TextInputAction.newline,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 4),
+                          child: IconButton(
+                            icon: const Icon(Icons.send),
+                            onPressed: _sendMessage,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
                 ),
               ],
             ),
