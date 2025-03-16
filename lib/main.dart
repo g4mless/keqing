@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/chat_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Add this line
   if (const String.fromEnvironment('OPENROUTER_API_KEY').isEmpty) {
     await dotenv.load();
   }
@@ -28,8 +29,8 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      themeMode: ThemeMode.dark, // Forces dark mode
-      home: const ChatScreen(),
+      themeMode: ThemeMode.dark,
+      home: const HomeScreen(), // Change this line
     );
   }
 }

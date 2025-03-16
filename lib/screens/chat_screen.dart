@@ -4,19 +4,35 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:markdown/markdown.dart' as md;
 import '../services/openrouter_service.dart';
+import '../services/chat_history_service.dart';
+import '../models/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final Conversation conversation;
+  final VoidCallback onConversationUpdated;
+
+  const ChatScreen({
+    super.key,
+    required this.conversation,
+    required this.onConversationUpdated,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  late final List<Map<String, String>> _messages;
   final TextEditingController _controller = TextEditingController();
   final OpenRouterService _service = OpenRouterService();
-  final List<Map<String, String>> _messages = [];
+  final ChatHistoryService _historyService = ChatHistoryService();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _messages = widget.conversation.messages;
+  }
 
   Future<void> _sendMessage() async {
     if (_controller.text.isEmpty) return;
@@ -38,6 +54,17 @@ class _ChatScreenState extends State<ChatScreen> {
         });
         _scrollToBottom();
       }
+
+      // Update conversation title if it's the first message
+      if (_messages.length == 2) {
+        final title = _messages.first['content']!;
+        widget.conversation.title = title.length > 30 
+            ? '${title.substring(0, 27)}...' 
+            : title;
+      }
+
+      await _historyService.saveConversation(widget.conversation);
+      widget.onConversationUpdated();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -141,7 +168,21 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Keqing'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(widget.conversation.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () async {
+              await _historyService.deleteConversation(widget.conversation.id);
+              widget.onConversationUpdated();
+              Navigator.pop(context);
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
