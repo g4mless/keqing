@@ -20,15 +20,23 @@ android {
     }
 
     defaultConfig {
-        // Change from "com.example.keqing" to a unique package name
         applicationId = "com.g4mless.keqingpunyagw"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    
+    // Add signing configuration
+    signingConfigs {
+        create("release") {
+            storeFile = file("keystore.jks")
+            storePassword = "keqingchat"
+            keyAlias = "keqingkey"
+            keyPassword = "keqingchat"
+        }
+    }
+    
     splits {
         abi {
             isEnable = true
@@ -40,10 +48,17 @@ android {
 
     buildTypes {
         release {
-            // Enable R8 shrinking and obfuscation
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Apply the signing config
+            signingConfig = signingConfigs.getByName("release")
+        }
+        
+        // Add a debug configuration that's also signed
+        debug {
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
