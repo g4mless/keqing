@@ -25,10 +25,15 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
 
     try {
-      final response = await _service.sendMessage(userMessage);
       setState(() {
-        _messages.add({'role': 'assistant', 'content': response});
+        _messages.add({'role': 'assistant', 'content': ''});
       });
+
+      await for (final response in _service.sendMessageStream(userMessage)) {
+        setState(() {
+          _messages.last['content'] = response;
+        });
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -44,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat with Keqing'),
+        title: const Text('Keqing'),
       ),
       body: Column(
         children: [
@@ -63,8 +68,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: message['role'] == 'user'
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.secondary,
+                          ? const Color(0xFF673AB7)
+                          : const Color(0xFF4A148C),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
