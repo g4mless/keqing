@@ -33,6 +33,7 @@ class OpenRouterService {
     request.headers.addAll({
       'Authorization': 'Bearer $apiKey',
       'Content-Type': 'application/json',
+      'HTTP_HOST': 'api.openrouter.ai',
     });
     request.body = jsonEncode({
       'model': modelId,
