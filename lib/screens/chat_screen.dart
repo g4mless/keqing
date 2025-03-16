@@ -4,54 +4,33 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:markdown/markdown.dart' as md;
 import '../services/openrouter_service.dart';
-import '../services/chat_history_service.dart';
 import '../services/model_service.dart';
-import '../models/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
-  final Conversation conversation;
-  final VoidCallback onConversationUpdated;
-
-  const ChatScreen({
-    super.key,
-    required this.conversation,
-    required this.onConversationUpdated,
-  });
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late final List<Map<String, String>> _messages;
+  final List<Map<String, String>> _messages = [];
   final TextEditingController _controller = TextEditingController();
   final OpenRouterService _service = OpenRouterService();
-  final ChatHistoryService _historyService = ChatHistoryService();
   final ModelService _modelService = ModelService();
   final ScrollController _scrollController = ScrollController();
-  
   String _selectedModel = 'deepseek-chat';
-  List<Conversation> _conversations = [];
 
   @override
   void initState() {
     super.initState();
-    _messages = widget.conversation.messages;
     _loadSelectedModel();
-    _loadConversations();
   }
 
   Future<void> _loadSelectedModel() async {
     final model = await _modelService.getSelectedModel();
     setState(() {
       _selectedModel = model;
-    });
-  }
-
-  Future<void> _loadConversations() async {
-    final loaded = await _historyService.loadConversations();
-    setState(() {
-      _conversations = loaded;
     });
   }
 
@@ -75,16 +54,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
         _scrollToBottom();
       }
-
-      if (_messages.length == 2) {
-        final title = _messages.first['content']!;
-        widget.conversation.title = title.length > 30 
-            ? '${title.substring(0, 27)}...' 
-            : title;
-      }
-
-      await _historyService.saveConversation(widget.conversation);
-      _loadConversations();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -187,7 +156,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.conversation.title),
+        title: const Text('KeqingChat'),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.auto_awesome),
@@ -224,83 +193,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            Container(
-              height: kToolbarHeight, // Standard AppBar height
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top,
-                left: 16,
-                right: 16,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Conversations',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _conversations.length,
-                itemBuilder: (context, index) {
-                  final conversation = _conversations[index];
-                  return ListTile(
-                    title: Text(conversation.title),
-                    subtitle: Text(
-                      conversation.messages.isNotEmpty
-                          ? conversation.messages.last['content']!
-                          : 'No messages',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    leading: const Icon(Icons.chat_outlined),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        await _historyService.deleteConversation(conversation.id);
-                        _loadConversations();
-                      },
-                    ),
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                            conversation: conversation,
-                            onConversationUpdated: widget.onConversationUpdated,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: const Text('New Chat'),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatScreen(
-                      conversation: Conversation.create(),
-                      onConversationUpdated: widget.onConversationUpdated,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
       body: Column(
         children: [
           Expanded(
@@ -326,14 +218,16 @@ class _ChatScreenState extends State<ChatScreen> {
                         Expanded(
                           child: TextField(
                             controller: _controller,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               hintText: 'Type a message...',
+                              hintStyle: TextStyle(color: Color(0xFF9E9E9E)),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
+                              contentPadding: EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
                               ),
                             ),
+                            style: const TextStyle(color: Colors.white),
                             maxLines: null,
                             textInputAction: TextInputAction.newline,
                           ),
@@ -344,8 +238,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             icon: const Icon(Icons.send),
                             onPressed: _sendMessage,
                             style: IconButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              backgroundColor: const Color(0xFF673AB7),
+                              foregroundColor: Colors.white70,
                             ),
                           ),
                         ),

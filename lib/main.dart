@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/chat_screen.dart';
-import 'models/conversation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,10 +30,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.dark,
-      home: ChatScreen(
-        conversation: Conversation.create(),
-        onConversationUpdated: () {}, // We'll handle this differently
-      ),
+      home: const ChatScreen(),
     );
   }
 }
