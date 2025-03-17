@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.g4mless.keqingpunyagw"
+    namespace = "com.g4mless.keqingchat"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +20,7 @@ android {
     }
 
     defaultConfig {
-        // Change from "com.example.keqing" to a unique package name
-        applicationId = "com.g4mless.keqingpunyagw"
+        applicationId = "com.g4mless.keqingchat"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
