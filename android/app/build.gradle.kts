@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.g4mless.keqingchat"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"  // Updated NDK version as required by shared_preferences
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -28,10 +28,19 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            if (System.getenv("CI") == "true") {
+                // CI environment (Codemagic)
+                storeFile = file(System.getenv("CM_KEYSTORE_PATH") ?: "")
+                storePassword = System.getenv("CM_KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("CM_KEY_ALIAS") ?: ""
+                keyPassword = System.getenv("CM_KEY_PASSWORD") ?: ""
+            } else {
+                // Local development environment
+                storeFile = file("debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
         }
     }
 
