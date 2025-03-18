@@ -16,6 +16,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   final TextEditingController _controller = TextEditingController();
+  bool _isGenerating = false;
   final OpenRouterService _service = OpenRouterService();
   final ModelService _modelService = ModelService();
   final ScrollController _scrollController = ScrollController();
@@ -35,11 +36,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendMessage() async {
+    if (_isGenerating) {
+      _service.stopGeneration();
+      setState(() => _isGenerating = false);
+      return;
+    }
+
     if (_controller.text.isEmpty) return;
     
     final userMessage = _controller.text;
     setState(() {
       _messages.add({'role': 'user', 'content': userMessage});
+      _isGenerating = true;
     });
     _controller.clear();
 
@@ -58,6 +66,8 @@ class _ChatScreenState extends State<ChatScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
+    } finally {
+      setState(() => _isGenerating = false);
     }
   }
 
@@ -101,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isUser ? const Color(0xFF673AB7) : const Color(0xFF4A148C),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: GestureDetector(
           onLongPress: () {
@@ -211,7 +221,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: [
@@ -235,10 +245,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         Container(
                           margin: const EdgeInsets.only(right: 4),
                           child: IconButton(
-                            icon: const Icon(Icons.send),
+                            icon: Icon(_isGenerating ? Icons.stop : Icons.send),
                             onPressed: _sendMessage,
                             style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFF673AB7),
+                              backgroundColor: _isGenerating 
+                                  ? Colors.red 
+                                  : const Color(0xFF673AB7),
                               foregroundColor: Colors.white,
                             ),
                           ),
